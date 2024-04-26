@@ -38,7 +38,10 @@ export class ElysiaWS<
 > {
 	validator?: TypeCheck<TSchema>
 
-	constructor(public raw: WS, public data: Context<Route, Singleton>) {
+	constructor(
+		public raw: WS,
+		public data: Context<Route, Singleton>
+	) {
 		this.validator = raw.data.validator
 		if (raw.data.id) {
 			this.id = raw.data.id
@@ -88,6 +91,28 @@ export class ElysiaWS<
 			if (typeof data === 'object') data = JSON.stringify(data)
 
 			this.raw.send(data as unknown as string)
+
+			return this
+		}
+	}
+
+	get sendBinary() {
+		return (data: Route['response']) => {
+			if (this.validator?.Check(data) === false)
+				throw new ValidationError('message', this.validator, data)
+
+			this.raw.sendBinary(data as unknown as Buffer)
+
+			return this
+		}
+	}
+
+	get sendText() {
+		return (data: Route['response']) => {
+			if (this.validator?.Check(data) === false)
+				throw new ValidationError('message', this.validator, data)
+
+			this.raw.sendText(data as unknown as string)
 
 			return this
 		}
